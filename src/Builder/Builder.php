@@ -11,10 +11,10 @@ class Builder
     protected $uri;
     protected $body;
 
-    public function __construct($model, $uri, $body=null)
+    public function __construct($model, $id=null, $body=null)
     {
         $this->model = $model;
-        $this->uri = $uri;
+        $this->uri = $model->api.$model->endpoint.(!is_null($id) ? "/".$id : null);
         $this->body = $body;
 
         $this->client = new Client([
@@ -25,20 +25,29 @@ class Builder
 
     public function get()
     {
-        $res = $this->client->get($this->uri, [
-            //
-        ]);
+        try{
+            $res = $this->client->get($this->uri, [
+                //
+            ]);
 
-        if($res->getStatusCode() != 200){
-            return $res->getStatusCode();
+            if($res->getStatusCode() != 200){
+                return $res->getStatusCode();
+            }
+
+            $result = json_decode($res->getBody()->getContents());
+            if(property_exists($result, 'data')){
+                $result = (array)$result->data;
+                print(count($result));
+            }
+            return $this->newModelInstance($result);
+        } catch (\Exception $e) {
+            return null;
         }
+    }
 
-        $result = json_decode($res->getBody()->getContents());
-
-        if(property_exists($result, 'data')){
-            $result = $result->data;
-        }
-        return $this->newModelInstance($result);
+    public function all()
+    {
+        //Return a collection of models
     }
 
     public function newModelInstance($attributes = [])

@@ -6,13 +6,26 @@ use Oaa\RestOrm\Builder\Builder;
 
 abstract class Model implements ModelInterface
 {
-    public $api;
-    public $endpoint;
+    protected $api;
+    protected $endpoint;
+
+    protected $fillable = [];
 
     public $attributes = [];
 
-    public $original;
+    public $original = [];
 
+    protected static $filtered = [
+        'api',
+        'endpoint',
+        'fillable',
+        'filtered'
+    ];
+
+    /**
+     * Creates a new Model Instance
+     * @param array $attributes
+     */
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
@@ -20,23 +33,36 @@ abstract class Model implements ModelInterface
 
     public function where($param, $val)
     {
-        return new Builder($this, $this->api.$this->endpoint);
+        return new Builder($this);
     }
 
-    public function find($id)
+    public static function find($id)
     {
-        $b = new Builder($this,$this->api.$this->endpoint."/".$id);
+        $b = new Builder(new static, $id);
         return $b->get();
     }
 
-    public static function create(array $params)
+    public static function all()
     {
+        $b = new Builder(new static);
+        return $b->get();
+    }
 
+    /**
+     * Creates a new model with the given params.
+     * @param array $params
+     * @return Model
+     */
+    public static function create(array $params) : Model
+    {
+        return $new = new static($params);
+        return $new->save();
     }
 
     public function save()
     {
-
+        $b = new Builder($this);
+        //return $b->save();
     }
 
     public function delete()
@@ -54,12 +80,19 @@ abstract class Model implements ModelInterface
 
     public function setAttribute($key, $value)
     {
-        $this->{$key} = $value;
-        $this->attributes[$key] = $value;
+        if(!in_array($key, static::$filtered)) {
+            $this->{$key} = $value;
+            $this->attributes[$key] = $value;
+        }
     }
 
     public function newInstance($attributes = [])
     {
         return $this->fill($attributes);
+    }
+
+    public function isDirty()
+    {
+        return $this->attributes != $this->original;
     }
 }

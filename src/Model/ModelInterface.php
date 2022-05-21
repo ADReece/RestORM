@@ -6,7 +6,7 @@ interface ModelInterface
 {
     public function where($param, $val);
 
-    public function find($id);
+    public static function find($id);
 
     public static function create(array $params);
 
