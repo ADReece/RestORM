@@ -9,18 +9,12 @@ abstract class Model implements ModelInterface
     protected $api;
     protected $endpoint;
 
-    protected $fillable = [];
-
     public $attributes = [];
 
     public $original = [];
 
-    protected static $filtered = [
-        'api',
-        'endpoint',
-        'fillable',
-        'filtered'
-    ];
+    protected $fillable = [];
+    protected $hidden = [];
 
     /**
      * Creates a new Model Instance
@@ -29,11 +23,6 @@ abstract class Model implements ModelInterface
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
-    }
-
-    public function where($param, $val)
-    {
-        return new Builder($this);
     }
 
     public static function find($id)
@@ -45,7 +34,7 @@ abstract class Model implements ModelInterface
     public static function all()
     {
         $b = new Builder(new static);
-        return $b->get();
+        return $b->all();
     }
 
     /**
@@ -80,7 +69,7 @@ abstract class Model implements ModelInterface
 
     public function setAttribute($key, $value)
     {
-        if(!in_array($key, static::$filtered)) {
+        if(!in_array($key, $this->hidden)){
             $this->{$key} = $value;
             $this->attributes[$key] = $value;
         }
@@ -88,7 +77,7 @@ abstract class Model implements ModelInterface
 
     public function newInstance($attributes = [])
     {
-        return $this->fill($attributes);
+        return (new static)->fill($attributes);
     }
 
     public function isDirty()
