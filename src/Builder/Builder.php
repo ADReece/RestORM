@@ -37,7 +37,6 @@ class Builder
             $result = json_decode($res->getBody()->getContents());
             if(property_exists($result, 'data')){
                 $result = (array)$result->data;
-                print(count($result));
             }
             return $this->newModelInstance($result);
         } catch (\Exception $e) {
