@@ -2,7 +2,7 @@
 
 namespace Oaa\RestOrm\Model;
 
-use Oaa\RestOrm\Builder\BuilderInstance;
+use Oaa\RestOrm\Builder\Builder;
 
 abstract class Model implements ModelInterface
 {
@@ -13,8 +13,6 @@ abstract class Model implements ModelInterface
 
     public $original;
 
-    protected static $traitInitializers = [];
-
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
@@ -22,13 +20,12 @@ abstract class Model implements ModelInterface
 
     public function where($param, $val)
     {
-        $b = new BuilderInstance($this->api.$this->endpoint);
-        return $b;
+        return new Builder($this, $this->api.$this->endpoint);
     }
 
     public function find($id)
     {
-        $b = new BuilderInstance($this->api.$this->endpoint."/".$id);
+        $b = new Builder($this,$this->api.$this->endpoint."/".$id);
         return $b->get();
     }
 
@@ -47,7 +44,7 @@ abstract class Model implements ModelInterface
 
     }
 
-    public function fill(array $attributes)
+    public function fill($attributes)
     {
         foreach ($attributes as $key => $value) {
                 $this->setAttribute($key, $value);
@@ -57,11 +54,12 @@ abstract class Model implements ModelInterface
 
     public function setAttribute($key, $value)
     {
+        $this->{$key} = $value;
         $this->attributes[$key] = $value;
     }
 
     public function newInstance($attributes = [])
     {
-        $model = new static((array) $attributes);
+        return $this->fill($attributes);
     }
 }

@@ -4,17 +4,16 @@ namespace Oaa\RestOrm\Builder;
 
 use GuzzleHttp\Client;
 
-abstract class RestOrmBuilder
+class Builder
 {
-    public Client $client;
-
+    protected Client $client;
     protected $model;
+    protected $uri;
+    protected $body;
 
-    public $uri;
-    public $body;
-
-    public function __construct($uri, $body=null)
+    public function __construct($model, $uri, $body=null)
     {
+        $this->model = $model;
         $this->uri = $uri;
         $this->body = $body;
 
@@ -27,7 +26,7 @@ abstract class RestOrmBuilder
     public function get()
     {
         $res = $this->client->get($this->uri, [
-            //Params
+            //
         ]);
 
         if($res->getStatusCode() != 200){
@@ -39,8 +38,7 @@ abstract class RestOrmBuilder
         if(property_exists($result, 'data')){
             $result = $result->data;
         }
-
-        return $result;
+        return $this->newModelInstance($result);
     }
 
     public function newModelInstance($attributes = [])
