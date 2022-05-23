@@ -7,14 +7,18 @@ use Oaa\RestOrm\Builder\Builder;
 abstract class Model implements ModelInterface
 {
     protected $api;
+
     protected $endpoint;
 
-    public $attributes = [];
-
-    public $original = [];
+    protected $original = [];
 
     protected $fillable = [];
+
     protected $hidden = [];
+
+    protected $changes = [];
+
+    public $attributes = [];
 
     /**
      * Creates a new Model Instance
@@ -48,18 +52,18 @@ abstract class Model implements ModelInterface
         return $new->save();
     }
 
-    public function save()
+    public function save() : Model
     {
         $b = new Builder($this);
         //return $b->save();
     }
 
-    public function delete()
+    public function delete() : bool
     {
 
     }
 
-    public function fill($attributes)
+    public function fill($attributes) : Model
     {
         foreach ($attributes as $key => $value) {
                 $this->setAttribute($key, $value);
@@ -67,21 +71,22 @@ abstract class Model implements ModelInterface
         return $this;
     }
 
-    public function setAttribute($key, $value)
+    public function setAttribute($key, $value) : void
     {
         if(!in_array($key, $this->hidden)){
             $this->{$key} = $value;
             $this->attributes[$key] = $value;
+            $this->original[$key] = $value;
         }
     }
 
-    public function newInstance($attributes = [])
+    public function newInstance($attributes = []) : Model
     {
         return (new static)->fill($attributes);
     }
 
-    public function isDirty()
+    public function isDirty() : bool
     {
-        return $this->attributes != $this->original;
+        return $this->attributes !== $this->original;
     }
 }
