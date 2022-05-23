@@ -4,6 +4,7 @@ namespace Oaa\RestOrm\Builder;
 
 use GuzzleHttp\Client;
 use Oaa\RestOrm\Collection\Collection;
+use \ReflectionClass;
 
 class Builder
 {
@@ -15,7 +16,8 @@ class Builder
     public function __construct($model, $id=null, $body=null)
     {
         $this->model = $model;
-        $this->uri = $model->api.($model->endpoint ?? strtolower($model::class)).(!is_null($id) ? "/".$id : null);
+        $reflect = new ReflectionClass($model);
+        $this->uri = $model->api.($model->endpoint ?? strtolower($reflect->getShortName())).(!is_null($id) ? "/".$id : null);
         $this->body = $body;
 
         $this->client = new Client([
@@ -43,10 +45,6 @@ class Builder
             //Need to create exceptions
             return null;
         }
-    }
-
-    public function save(){
-        //If the model exists, update it.  If not then create it.
     }
 
     public function all()
@@ -80,6 +78,10 @@ class Builder
             //Need to create exceptions
             return null;
         }
+    }
+
+    public function save(){
+        //If the model exists, update it.  If not then create it.
     }
 
     public function newModelInstance($attributes = [])

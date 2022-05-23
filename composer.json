@@ -2,6 +2,7 @@
     "name": "oaa/rest-orm",
     "description": "A REST API ORM Wrapper.",
     "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Oaa\\RestOrm\\": "src/"
