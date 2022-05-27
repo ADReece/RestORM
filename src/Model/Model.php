@@ -10,7 +10,7 @@ abstract class Model implements ModelInterface
 
     protected $endpoint;
 
-    protected $original = [];
+    public $original = [];
 
     protected $fillable = [];
 
@@ -27,6 +27,20 @@ abstract class Model implements ModelInterface
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
+    }
+
+    public function __get($attribute)
+    {
+        if(key_exists($attribute, $this->attributes)){
+            return $this->attributes[$attribute];
+        }
+    }
+
+    public function __set($attribute, $value)
+    {
+        if(key_exists($attribute, $this->attributes)){
+            $this->attributes[$attribute] = $value;
+        }
     }
 
     public static function find($id)
@@ -46,10 +60,19 @@ abstract class Model implements ModelInterface
      * @param array $params
      * @return Model
      */
-    public static function create(array $params) : Model
+    public static function create(array $params) : Model | bool
     {
-        return $new = new static($params);
-        return $new->save();
+        $new = new static($params);
+        foreach($params as $param){
+            if(!in_array($param, $new->fillable)){
+                return false;
+                //Change to return a NonFillableException;
+            }
+        }
+
+        $b = new Builder($new);
+        $b->create($params);
+        return $new;
     }
 
     public function save() : Model
@@ -60,7 +83,9 @@ abstract class Model implements ModelInterface
 
     public function delete() : bool
     {
-
+        $b = new Builder($this);
+        if($b->delete()){ return true; }
+        return false;
     }
 
     public function fill($attributes) : Model
@@ -74,7 +99,6 @@ abstract class Model implements ModelInterface
     public function setAttribute($key, $value) : void
     {
         if(!in_array($key, $this->hidden)){
-            $this->{$key} = $value;
             $this->attributes[$key] = $value;
             $this->original[$key] = $value;
         }

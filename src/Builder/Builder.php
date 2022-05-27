@@ -3,6 +3,7 @@
 namespace Oaa\RestOrm\Builder;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Oaa\RestOrm\Collection\Collection;
 use \ReflectionClass;
 
@@ -22,25 +23,29 @@ class Builder
 
         $this->client = new Client([
             'timeout' => 0,
-            'allow_redirects' => false
+            'allow_redirects' => false,
+            'headers' => [
+                'Accept' => 'application/json'
+            ]
         ]);
     }
 
     public function get()
     {
         try{
-            $res = $this->client->get($this->uri, [
-                //
-            ]);
+            $res = $this->client->get($this->uri);
 
             if($res->getStatusCode() != 200){
                 return $res->getStatusCode();
             }
             $result = json_decode($res->getBody()->getContents());
-            if(property_exists($result, 'data')){
-                $result = $result->data;
+            if(!is_null($result) && $result != []){
+                if(property_exists($result, 'data')){
+                    $result = $result->data;
+                }
+                return $this->newModelInstance($result);
             }
-            return $this->newModelInstance($result);
+            return null;
         } catch (\Exception $e) {
             //Need to create exceptions
             return null;
@@ -80,9 +85,30 @@ class Builder
         }
     }
 
-    public function save(){
+    public function save()
+    {
         //If the model exists, update it.  If not then create it.
     }
+
+    public function create($params)
+    {
+        $res = $this->client->post($this->uri ,[
+            RequestOptions::FORM_PARAMS => $params
+        ]);
+
+        $result = $res->getBody()->getContents();
+
+        return $this->getModel()->newInstance($result);
+    }
+    public function delete()
+    {
+        $res = $this->client->delete($this->uri . '/' . $this->model->id);
+
+        $result = $res->getBody()->getContents();
+
+        return $result;
+    }
+
 
     public function newModelInstance($attributes = [])
     {
